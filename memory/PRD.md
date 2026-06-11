@@ -24,6 +24,30 @@
 - Medical-grade prediction engine with uncertainty modelling.
 
 ## Implemented (with dates)
+- 2026-06-11: Phase 3 — "Verified Forecasting Improvements Only" engine v3
+  (backend/prediction_engine_v3.py, v3.0.0 / verified-forecast-v1) now serves
+  GET /api/prediction. Every enhancement is EVIDENCE-GATED per user via walk-forward
+  backtesting (P12): bias correction, dampening, strategy/window selection,
+  conformal vs heuristic intervals, direct-vs-traditional quantiles, confidence
+  estimator all activate only if they improve MAE/calibration/coverage. New per spec:
+  P3 conformal intervals (own out-of-sample signed errors, coverage audit, rejection
+  fallback), P4 adaptive lookback windows {3,6,12,24}, P5 direct quantile forecasting
+  (P10–P90, pinball-loss gate), P7 distribution/intervals/quantiles all from ONE
+  empirical error CDF (14-row v1-compatible window), P8 calibration engine (bucketed
+  CE, <5% target, gated shrinkage), P9 forecast-stability metrics + gated dampening
+  (±2d clamp), P11 activeForecastingStrategy (margin-protected 0.15d), P14 NEW
+  GET /api/prediction/monitoring (30/90/365-day/lifetime: MAE/RMSE/median/calibration/
+  p95-error/coverage). prediction_history rows now persist active_strategy,
+  optimal_window, model_accuracy, stability_score, quantile_method, p95 bounds.
+  Output is a superset of v2 (UI untouched, fully compatible). v2 kept importable
+  for benchmark gates. Tests: tests/test_prediction_engine_v3.py (51, 97% cov),
+  tests/test_v3_benchmark_gate.py (13 — v3 must not regress vs v2 + MAE success
+  criteria: very regular <1.5, regular <2.0, mod-irregular <3.0 on AR(1) cohorts +
+  p95 coverage + calibration), tests/test_v3_endpoint.py (5). Existing v2/phase2
+  suites updated to accept 3.0.0 and conformal interval source; all green
+  (235 engine + 52 API). Verified via testing_agent iteration_10 (11/11 integration
+  + frontend regression). NOTE: demo user (8 cycles) correctly gates conformal/
+  direct-quantile OFF (insufficient evidence) — expected behavior.
 - 2026-06-11: Phase 2 spec re-submitted by user — full audit confirmed ALL 20 priorities
   are already implemented in this environment (engine v2.0.0 / ensemble-v1). Verified by
   running suites here: 171/171 engine unit tests with 99% line coverage on
