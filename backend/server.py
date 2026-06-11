@@ -19,6 +19,7 @@ import db
 from auth import get_current_user, now_utc
 import prediction_engine as prediction_engine
 import prediction_engine_v2 as prediction_engine_v2
+import prediction_engine_v3 as prediction_engine_v3
 from health_events import (router as health_events_router,
                            get_water_summary, get_meal_summary)
 from medications_v2 import router as medications_router
@@ -448,7 +449,7 @@ async def prediction(today: Optional[str] = None, current=Depends(get_current_us
         except ValueError:
             today_date = None
 
-    result = prediction_engine_v2.predict(cycle_rows, today=today_date,
+    result = prediction_engine_v3.predict(cycle_rows, today=today_date,
                                           generated_at=now_utc().isoformat())
 
     # Cache the derived profile (UserCycleProfile) — updated on every call so it
@@ -492,6 +493,14 @@ async def prediction(today: Optional[str] = None, current=Depends(get_current_us
                         result.get("reliabilityIndex", {}).get("classification"),
                     "data_sufficiency_level": result.get("dataSufficiency", {}).get("level"),
                     "model_weights": result.get("modelWeights"),
+                    "model_accuracy": result.get("modelAccuracy"),
+                    "active_strategy": result.get("activeForecastingStrategy"),
+                    "optimal_window": result.get("lookback", {}).get("optimal_window"),
+                    "calibration_error": result.get("calibration", {}).get("calibration_error"),
+                    "stability_score": result.get("forecastStability", {}).get("stability_score"),
+                    "quantile_method": result.get("quantileForecast", {}).get("method"),
+                    "p95_start": result.get("predictionIntervals", {}).get("p95", {}).get("start"),
+                    "p95_end": result.get("predictionIntervals", {}).get("p95", {}).get("end"),
                     "last_cycle_start": last_cycle_start,
                     "updated_at": now_utc(),
                 },
@@ -618,6 +627,79 @@ async def prediction_history(limit: int = 50, current=Depends(get_current_user))
                 s[k] = s[k].isoformat()
     return {"history": rows, "count": len(rows), "validationMetrics": metrics,
             "monthlySnapshots": snapshots}
+
+
+@api.get("/prediction/monitoring")
+async def prediction_monitoring(current=Depends(get_current_user)):
+    """Continuous forecast monitoring (P14): production error metrics over
+    30-day / 90-day / 365-day / lifetime windows.
+
+    Error metrics come from the persisted walk-forward benchmark table; interval
+    coverage comes from resolved prediction-history rows that stored their P95
+    conformal bounds.
+    """
+    bench = await db.benchmark_records.find(
+        {"user_id": current["_id"], "error_days": {"$ne": None}},
+        {"_id": 0, "error_days": 1, "confidence": 1, "actual_period_start": 1},
+    ).to_list(length=5000)
+    resolved = await db.prediction_history.find(
+        {"user_id": current["_id"], "actual_period_start": {"$ne": None}},
+        {"_id": 0, "prediction_error_days": 1, "confidence": 1,
+         "actual_period_start": 1, "p95_start": 1, "p95_end": 1},
+    ).to_list(length=2000)
+
+    today_iso = now_utc().date()
+
+    def window_metrics(days: Optional[int]) -> dict:
+        cutoff = (today_iso - timedelta(days=days)).isoformat() if days else None
+        errs: List[float] = []
+        confs: List[float] = []
+        for r in bench:
+            if cutoff and (r.get("actual_period_start") or "") < cutoff:
+                continue
+            errs.append(float(r["error_days"]))
+            if r.get("confidence") is not None:
+                confs.append(float(r["confidence"]))
+        covered = cov_total = 0
+        for h in resolved:
+            if cutoff and (h.get("actual_period_start") or "") < cutoff:
+                continue
+            if h.get("p95_start") and h.get("p95_end"):
+                cov_total += 1
+                if h["p95_start"] <= h["actual_period_start"] <= h["p95_end"]:
+                    covered += 1
+        if not errs:
+            return {"samples": 0, "mae": None, "rmse": None, "median_error": None,
+                    "calibration_error": None, "p95_error": None,
+                    "coverage": None, "coverage_error": None,
+                    "coverage_samples": cov_total}
+        abs_errs = [abs(e) for e in errs]
+        hit_rate = sum(1 for e in abs_errs if e <= 2) / len(abs_errs)
+        calibration_error = (round(abs(statistics.mean(confs) - hit_rate * 100), 2)
+                             if confs else None)
+        coverage = round(covered / cov_total, 3) if cov_total else None
+        return {
+            "samples": len(errs),
+            "mae": round(statistics.mean(abs_errs), 2),
+            "rmse": round((statistics.mean([e * e for e in errs])) ** 0.5, 2),
+            "median_error": round(statistics.median(errs), 2),
+            "calibration_error": calibration_error,
+            "p95_error": round(prediction_engine_v2.percentile(abs_errs, 95) or 0.0, 2),
+            "coverage": coverage,
+            "coverage_error": (round(abs(95.0 - coverage * 100), 2)
+                               if coverage is not None else None),
+            "coverage_samples": cov_total,
+        }
+
+    return {
+        "engine_version": prediction_engine_v3.ENGINE_VERSION,
+        "windows": {
+            "30_day": window_metrics(30),
+            "90_day": window_metrics(90),
+            "365_day": window_metrics(365),
+            "lifetime": window_metrics(None),
+        },
+    }
 
 
 # ----------------------------- Symptom pattern analysis -----------------------------

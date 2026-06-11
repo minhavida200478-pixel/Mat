@@ -86,7 +86,7 @@ class TestPredictionHistoryResolution:
             assert "actual_period_start" in r
             assert "prediction_error_days" in r
             assert r["model_weights"]  # P13: weights stored per prediction
-            assert r["engine_version"] == "2.0.0"
+            assert r["engine_version"] in ("2.0.0", "3.0.0")
 
     def test_prior_prediction_resolved_with_actual(self, seeded):
         rows = seeded["history"]["history"]
@@ -120,7 +120,7 @@ class TestMonthlySnapshots:
         for key in ("mae", "rmse", "success_rate", "stability_score", "samples"):
             assert key in m
         assert m["samples"] >= 1
-        assert s["engine_version"] == "2.0.0"
+        assert s["engine_version"] in ("2.0.0", "3.0.0")
 
     def test_one_snapshot_per_month_idempotent(self, seeded, mongo):
         count = mongo.validation_snapshots.count_documents(
@@ -141,7 +141,7 @@ class TestBenchmarkRecords:
                     "actual_period_start", "error_days", "confidence",
                     "engine_version", "regularity", "cycle_count"):
             assert key in rec, f"missing {key}"
-        assert rec["engine_version"] == "2.0.0"
+        assert rec["engine_version"] in ("2.0.0", "3.0.0")
         assert isinstance(rec["error_days"], int)
 
     def test_records_idempotent_per_actual_date(self, seeded, mongo):

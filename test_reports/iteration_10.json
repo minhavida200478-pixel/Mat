@@ -1,0 +1,33 @@
+{
+  "summary": "Phase-3 MAT v3 prediction engine validated end-to-end. Pure pytest engine suites pass: 235/235 in 2.77s across test_prediction_engine_v3.py (51), test_v3_benchmark_gate.py (13), test_prediction_engine_v2.py and test_prediction_engine.py. Wrote new integration test_v3_integration_iter10.py (11 tests) hitting the public preview URL — all 11 pass: v3 fields (errorLearning, modelAccuracy, modelWeightHistory, modelAccuracyHistory, lookback.optimal_window in {3,6,12,24}, activeForecastingStrategy, conformalCalibration, quantileForecast, forecastStability, calibration, deploymentGate), v2/UI fields preserved (predictedDate, confidence, reliabilityIndex, predictionIntervals.p50/p95, probabilityDistribution exactly 14 rows, dataSufficiency), engineVersion '3.x' + algorithmVersion 'verified-forecast-v1', monotonic p10/p25/p50/p75/p90 quantiles, determinism (two consecutive /api/prediction calls identical), demo-user gated fallback (model_variance + traditional), power-user (12 varied cycles) activates conformal/direct_quantile, GET /api/prediction/monitoring requires auth and returns four windows (30/90/365/lifetime) each with samples/mae/rmse/median_error/calibration_error/p95_error/coverage/coverage_error, and history rows persist active_strategy/optimal_window/model_accuracy/stability_score/quantile_method/p95_start/p95_end. Frontend regression on demo@cycle.app PASSES: Insights renders prediction-panel with Jun 16 / 95% confidence / Likely window Jun 15–Jun 17 / Reliability index 91/100 / Prediction range table populated; Calendar and Today tabs render cleanly. Only 2 console warnings observed (React 19 'element.ref deprecated' from a 3rd-party lib, non-blocking).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "react 19 ref warning", "issue": "Two CONSOLE.error 'Accessing element.ref was removed in React 19. ref is now a regular prop' on Insights. Origin appears to be a 3rd-party component (not v3 code). Non-blocking but should be tracked. Reference: console output during Insights render."}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_v3_integration_iter10.py",
+    "/app/test_reports/pytest/iteration_10_v3_engine_suites.xml",
+    "/app/test_reports/pytest/iteration_10_v3_integration.xml"
+  ],
+  "action_items": [
+    "(Optional) Investigate source of React 19 'element.ref' warnings firing on Insights — likely a react-native-* dependency still using legacy ref access; not a v3 regression."
+  ],
+  "critical_code_review_comments": [
+    "/app/backend/server.py is 1346 lines — beyond the 700-line guideline; consider splitting prediction/monitoring/history routes into a dedicated router module.",
+    "Prediction monitoring endpoint correctly excludes Mongo _id via projection and returns deterministic JSON shape — good."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_v3_integration_iter10.py (new)"
+  ],
+  "success_rate": {"backend": "100% (235/235 engine + 11/11 v3 integration)", "frontend": "100% (Insights/Today/Calendar render with expected v3 data)"},
+  "seed_data_creation": "Per-test power user 'TEST_v3pwr_*' seeded with 12 varied cycles (28,31,26,29,33,25,30,27,32,26,29,31) to exercise conformal/direct_quantile gates; demo user untouched.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Public preview URL is in frontend/.env as EXPO_PUBLIC_BACKEND_URL. conftest.register_user already handles DEV email verification + register rate-limit backoff. v3 endpoint contract: engineVersion starts '3.', algorithmVersion='verified-forecast-v1', quantileForecast.quantiles has 5 anchors p10/p25/p50/p75/p90 (NOT p10..p90 deciles), predictionIntervals.source in {'model_variance','conformal'}, quantileForecast.method in {'traditional','direct_quantile'}. Demo user (8 cycles) correctly falls back to traditional gates — documented, not a bug. To see conformal active, seed 12+ varied cycles.",
+  "rca_of_issue": "N/A — no functional regressions found. The two test-script failures on the first run were assertion bugs in my own test (used 'methodology' instead of 'algorithmVersion'; assumed 9 decile quantiles instead of 5 anchor quantiles). Fixed in-place; re-run was 11/11 green."
+}

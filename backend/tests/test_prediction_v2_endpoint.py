@@ -1,7 +1,7 @@
 """Phase 2 (v2 engine) live API tests for GET /api/prediction.
 
 Targets the Phase 2 contract:
-  - engineVersion == "2.0.0"
+  - engineVersion in ("2.0.0", "3.0.0")
   - reliabilityIndex (score 0-100 + classification)
   - predictionIntervals (p50/p75/p90/p95) with half_width_days non-decreasing
   - dataSufficiency level/label/max_confidence and confidence cap enforcement
@@ -100,8 +100,8 @@ class TestV2Contract:
         missing_v2 = V2_ADDED_KEYS - set(body.keys())
         assert not missing_v1, f"missing v1 keys: {missing_v1}"
         assert not missing_v2, f"missing v2 keys: {missing_v2}"
-        assert body["engineVersion"] == "2.0.0", body["engineVersion"]
-        assert body["algorithmVersion"] == "ensemble-v1"
+        assert body["engineVersion"] in ("2.0.0", "3.0.0"), body["engineVersion"]
+        assert body["algorithmVersion"] in ("ensemble-v1", "verified-forecast-v1")
 
     def test_v2_keys_with_history(self, client, auth_headers):
         # 12 regular 28-day cycles
@@ -120,7 +120,7 @@ class TestV2Contract:
                                       "Highly Irregular", "Unknown")
 
         # ---- engineVersion ----
-        assert body["engineVersion"] == "2.0.0"
+        assert body["engineVersion"] in ("2.0.0", "3.0.0")
 
         # ---- reliabilityIndex ----
         ri = body["reliabilityIndex"]
@@ -139,7 +139,9 @@ class TestV2Contract:
         # Wider intervals should not be tighter than narrower ones.
         hw = [pi[f"p{p}"]["half_width_days"] for p in (50, 75, 90, 95)]
         assert hw == sorted(hw), f"intervals not monotonic: {hw}"
-        assert pi.get("source") in ("empirical_error", "model_variance")
+        assert pi.get("source") in ("empirical_error", "model_variance", "conformal",
+                                    "empirical_error (conformal_rejected)",
+                                    "model_variance (conformal_rejected)")
 
         # ---- dataSufficiency ----
         ds = body["dataSufficiency"]
@@ -191,7 +193,7 @@ class TestV2Contract:
         bm = body["benchmark"]
         assert set(bm.keys()) >= {"engine_version", "overall_accuracy", "mae", "rmse",
                                   "samples", "by_regularity", "by_cycle_count", "records"}
-        assert bm["engine_version"] == "2.0.0"
+        assert bm["engine_version"] in ("2.0.0", "3.0.0")
         assert bm["by_cycle_count"] == 12
         assert isinstance(bm["records"], list)
 
@@ -200,7 +202,7 @@ class TestV2Contract:
         assert set(at.keys()) >= {
             "prediction_id", "generated_at", "contributing_cycles", "excluded_cycles",
             "outlier_adjustments", "trend_adjustments", "confidence_source", "model_versions"}
-        assert at["model_versions"]["engine_version"] == "2.0.0"
+        assert at["model_versions"]["engine_version"] in ("2.0.0", "3.0.0")
         assert len(at["contributing_cycles"]) == 12
 
 

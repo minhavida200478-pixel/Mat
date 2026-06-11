@@ -102,7 +102,7 @@ class TestHistoryContract:
         assert not missing, f"history row missing keys: {missing}; got {list(row.keys())}"
 
         # value sanity
-        assert row["engine_version"] == "2.0.0", row
+        assert row["engine_version"] in ("2.0.0", "3.0.0"), row
         assert row["prediction_id"], row
         assert isinstance(row["model_weights"], dict)
         assert row["reliability_classification"] in (
@@ -196,7 +196,7 @@ class TestExistingFlowsStillGreen:
         r = client.get(f"{API}/prediction", headers=auth_headers, timeout=20)
         assert r.status_code == 200, r.text
         body = r.json()
-        assert body["engineVersion"] == "2.0.0"
+        assert body["engineVersion"] in ("2.0.0", "3.0.0")
 
     def test_dashboard(self, client, auth_headers):
         r = client.get(f"{API}/dashboard", headers=auth_headers, timeout=20)
