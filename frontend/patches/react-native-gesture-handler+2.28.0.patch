@@ -1,0 +1,39 @@
+diff --git a/node_modules/react-native-gesture-handler/lib/commonjs/web/utils.js b/node_modules/react-native-gesture-handler/lib/commonjs/web/utils.js
+index 38a68f3..5ebdc51 100644
+--- a/node_modules/react-native-gesture-handler/lib/commonjs/web/utils.js
++++ b/node_modules/react-native-gesture-handler/lib/commonjs/web/utils.js
+@@ -227,7 +227,7 @@ function isRNSVGElement(viewRef) {
+ function isRNSVGNode(node) {
+   // If `ref` has `rngh` field, it means that component comes from Gesture Handler. This is a special case for
+   // `Text` component, which is present in `RNSVGElements` set, yet we don't want to treat it as SVG.
+-  if (node.ref?.rngh) {
++  if (node?.props?.ref?.rngh) {
+     return false;
+   }
+   return Object.getPrototypeOf(node?.type)?.name === 'WebShape' || RNSVGElements.has(node?.type?.displayName);
+diff --git a/node_modules/react-native-gesture-handler/lib/module/web/utils.js b/node_modules/react-native-gesture-handler/lib/module/web/utils.js
+index e9ae250..7250816 100644
+--- a/node_modules/react-native-gesture-handler/lib/module/web/utils.js
++++ b/node_modules/react-native-gesture-handler/lib/module/web/utils.js
+@@ -215,7 +215,7 @@ export function isRNSVGElement(viewRef) {
+ export function isRNSVGNode(node) {
+   // If `ref` has `rngh` field, it means that component comes from Gesture Handler. This is a special case for
+   // `Text` component, which is present in `RNSVGElements` set, yet we don't want to treat it as SVG.
+-  if (node.ref?.rngh) {
++  if (node?.props?.ref?.rngh) {
+     return false;
+   }
+   return Object.getPrototypeOf(node?.type)?.name === 'WebShape' || RNSVGElements.has(node?.type?.displayName);
+diff --git a/node_modules/react-native-gesture-handler/src/web/utils.ts b/node_modules/react-native-gesture-handler/src/web/utils.ts
+index 2825eff..fd40475 100644
+--- a/node_modules/react-native-gesture-handler/src/web/utils.ts
++++ b/node_modules/react-native-gesture-handler/src/web/utils.ts
+@@ -282,7 +282,7 @@ export function isRNSVGElement(viewRef: SVGRef | GestureHandlerRef) {
+ export function isRNSVGNode(node: any) {
+   // If `ref` has `rngh` field, it means that component comes from Gesture Handler. This is a special case for
+   // `Text` component, which is present in `RNSVGElements` set, yet we don't want to treat it as SVG.
+-  if (node.ref?.rngh) {
++  if (node?.props?.ref?.rngh) {
+     return false;
+   }
+ 

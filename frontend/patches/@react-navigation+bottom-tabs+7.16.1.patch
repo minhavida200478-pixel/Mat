@@ -1,0 +1,65 @@
+diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabBar.js b/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabBar.js
+index b4c78af..aa12a71 100644
+--- a/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabBar.js
++++ b/node_modules/@react-navigation/bottom-tabs/lib/module/views/BottomTabBar.js
+@@ -252,12 +252,14 @@ export function BottomTabBar({
+       paddingBottom: tabBarPosition === 'bottom' ? insets.bottom : 0,
+       paddingTop: tabBarPosition === 'top' ? insets.top : 0,
+       paddingHorizontal: Math.max(insets.left, insets.right)
+-    }], tabBarStyle],
+-    pointerEvents: isTabBarHidden ? 'none' : 'auto',
++    }], tabBarStyle, {
++      pointerEvents: isTabBarHidden ? 'none' : 'auto'
++    }],
+     onLayout: sidebar ? undefined : handleLayout,
+     children: [/*#__PURE__*/_jsx(View, {
+-      pointerEvents: "none",
+-      style: StyleSheet.absoluteFill,
++      style: [StyleSheet.absoluteFill, {
++        pointerEvents: 'none'
++      }],
+       children: tabBarBackgroundElement
+     }), /*#__PURE__*/_jsx(View, {
+       role: "tablist",
+diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/views/ScreenFallback.js b/node_modules/@react-navigation/bottom-tabs/lib/module/views/ScreenFallback.js
+index e27e9c2..3bc75fa 100644
+--- a/node_modules/@react-navigation/bottom-tabs/lib/module/views/ScreenFallback.js
++++ b/node_modules/@react-navigation/bottom-tabs/lib/module/views/ScreenFallback.js
+@@ -19,8 +19,17 @@ export const MaybeScreenContainer = ({
+       ...rest
+     });
+   }
++  // React Native Web deprecates the `pointerEvents` prop — pass it via style.
++  const {
++    pointerEvents,
++    style,
++    ...viewRest
++  } = rest;
+   return /*#__PURE__*/_jsx(View, {
+-    ...rest
++    ...viewRest,
++    style: pointerEvents ? [style, {
++      pointerEvents
++    }] : style
+   });
+ };
+ export function MaybeScreen({
+@@ -35,8 +44,16 @@ export function MaybeScreen({
+       ...rest
+     });
+   }
++  const {
++    pointerEvents,
++    style,
++    ...viewRest
++  } = rest;
+   return /*#__PURE__*/_jsx(View, {
+-    ...rest
++    ...viewRest,
++    style: pointerEvents ? [style, {
++      pointerEvents
++    }] : style
+   });
+ }
+ //# sourceMappingURL=ScreenFallback.js.map
+\ No newline at end of file

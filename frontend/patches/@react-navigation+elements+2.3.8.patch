@@ -1,0 +1,38 @@
+diff --git a/node_modules/@react-navigation/elements/lib/module/ResourceSavingView.js b/node_modules/@react-navigation/elements/lib/module/ResourceSavingView.js
+index eb063ab..fe362d0 100644
+--- a/node_modules/@react-navigation/elements/lib/module/ResourceSavingView.js
++++ b/node_modules/@react-navigation/elements/lib/module/ResourceSavingView.js
+@@ -18,8 +18,9 @@ export function ResourceSavingView({
+       hidden: !visible,
+       style: [{
+         display: visible ? 'flex' : 'none'
+-      }, styles.container, style],
+-      pointerEvents: visible ? 'auto' : 'none',
++      }, styles.container, style, {
++        pointerEvents: visible ? 'auto' : 'none'
++      }],
+       ...rest,
+       children: children
+     });
+diff --git a/node_modules/@react-navigation/elements/lib/module/Screen.js b/node_modules/@react-navigation/elements/lib/module/Screen.js
+index 321dbfb..6ec7fa4 100644
+--- a/node_modules/@react-navigation/elements/lib/module/Screen.js
++++ b/node_modules/@react-navigation/elements/lib/module/Screen.js
+@@ -40,14 +40,15 @@ export function Screen(props) {
+       children: /*#__PURE__*/_jsx(NavigationRouteContext.Provider, {
+         value: route,
+         children: /*#__PURE__*/_jsx(View, {
+-          pointerEvents: "box-none",
+           onLayout: e => {
+             const {
+               height
+             } = e.nativeEvent.layout;
+             setHeaderHeight(height);
+           },
+-          style: [styles.header, headerTransparent ? styles.absolute : null],
++          style: [styles.header, headerTransparent ? styles.absolute : null, {
++            pointerEvents: 'box-none'
++          }],
+           children: header
+         })
+       })
