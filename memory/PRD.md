@@ -24,6 +24,19 @@
 - Medical-grade prediction engine with uncertainty modelling.
 
 ## Implemented (with dates)
+- 2026-06-11: Phase 2 spec re-submitted by user — full audit confirmed ALL 20 priorities
+  are already implemented in this environment (engine v2.0.0 / ensemble-v1). Verified by
+  running suites here: 171/171 engine unit tests with 99% line coverage on
+  prediction_engine_v2.py (P20 ≥95% met), 21/21 phase2-persistence + history-endpoint
+  tests, 26/26 prediction endpoint tests (218 total). Live /api/prediction response
+  carries all Phase 2 fields (models, modelWeights ≤0.40 cap, reliabilityIndex,
+  predictionIntervals p50–p95, dataSufficiency, trendForecast, changePoints,
+  outlierClassifications, healthFlags, populationPrior, auditTrail, engineVersion,
+  validationMetrics, predictionErrors/rolling, confidenceSource=historical_accuracy).
+  Perf: local API ~7ms (<200ms P19). Field-name mapping vs spec: models=model
+  predictions, healthFlags=medical flags, predictionErrors=rolling errors. Reminder:
+  in-memory register rate limit (10/min, 30/hour) — restart backend between large
+  API test suites.
 - 2026-06-11: Re-imported full repo into fresh environment (new preview URL
   mat-mobile-app.preview.emergentagent.com). Installed backend pip + frontend yarn deps,
   added JWT_SECRET to backend/.env, services running. Fresh DB: re-registered + verified
