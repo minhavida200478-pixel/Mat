@@ -24,6 +24,13 @@
 - Medical-grade prediction engine with uncertainty modelling.
 
 ## Implemented (with dates)
+- 2026-06-11: Re-imported full repo into fresh environment (new preview URL
+  mat-mobile-app.preview.emergentagent.com). Installed backend pip + frontend yarn deps,
+  added JWT_SECRET to backend/.env, services running. Fresh DB: re-registered + verified
+  demo@cycle.app / DemoPass123! and seeded 8 cycles (Nov 2025 – May 2026) → prediction
+  2026-06-16 @ 95% confidence. Email stays in DEV mode (no RESEND_API_KEY; codes logged
+  to backend err log). Verified via testing_agent: 13/13 backend smoke tests + full
+  frontend login/tab walkthrough (iteration_9.json).
 - 2026-06-10: Phase 2 final gap-closure (P2/P11/P14 persistence). The v2 engine already
   covered P1-P19; this iteration closed the spec's storage requirements in server.py:
   (a) P2 — prediction_history rows now store prediction_date + last_cycle_start and are
