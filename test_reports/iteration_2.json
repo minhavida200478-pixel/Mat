@@ -1,0 +1,33 @@
+{
+  "summary": "Frontend-only verification of the new PredictionPanel on the Insights tab. Logged in as demo@cycle.app via the Sign In form and navigated to Insights at viewport 430x920. All 17 required testIDs render with correct content from GET /api/prediction: prediction-panel (wrapper), prediction-window-card showing 'Jul 2' (predicted date) + 'Likely window Jun 23 - Jul 11' + 'Cycle length ~28d · 13 cycles tracked', prediction-confidence '63%' with prediction-confidence-bar filling 63% in amber, prediction-regularity-chip showing 'Moderately Irregular', prediction-prob-card with the SVG prediction-prob-curve (peak Jul 2 · 63%, axis labels Jun 25 / Jul 8), prediction-trends-card with two trend rows ('Your cycles have been getting shorter recently.', 'Your cycle length has become more variable.'), and prediction-flags-card ('1 cycle(s) were shorter than 21 days.', 'A cycle length changed by more than 10 days 2 time(s).' plus disclaimer). Existing Insights content still renders below the panel: insight-avg-cycle, insight-avg-period, insight-regularity, insight-patterns, insight-symptom-chart, insight-mood-chart — confirmed by bounding-box layout (scrollHeight 1755px on a 836px viewport, content laid out y=88 -> y=1557). No red screen, no API errors, no missing testIDs. Three non-blocking RN-Web / React 19 console warnings observed (deprecated shadow* style, deprecated pointerEvents prop, element.ref removal) — they come from third-party libs, not the new panel. Frontend success rate: 100%.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "react-native-web shadow styles", "issue": "Console warning: '\"shadow*\" style props are deprecated. Use \"boxShadow\".' Emitted on the login screen on load — coming from RN-Web compatibility layer / Card shadow styles. Non-blocking. Reference: search shadowColor / shadowOpacity / shadowRadius usage in /app/frontend/src/components/ui (or theme)."},
+      {"component": "react-native-web pointerEvents prop", "issue": "Console warning: 'props.pointerEvents is deprecated. Use style.pointerEvents'. Likely originates from a third-party RN component; if any in-house component passes pointerEvents as a prop, migrate it to style.pointerEvents."},
+      {"component": "React 19 element.ref", "issue": "Console error twice on first navigation: 'Accessing element.ref was removed in React 19. ref is now a regular prop.' Likely from a third-party lib that still reads child.ref (commonly react-native-svg or expo-router internals). Non-blocking but worth tracking for library upgrades."}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_2.json"],
+  "action_items": [
+    "No blocking action for the PredictionPanel feature — it ships green from a frontend integration standpoint.",
+    "Optional: remove deprecated shadow* style props from /app/frontend/src/components/ui (Card) / theme in favor of boxShadow on web to silence the RN-Web warning.",
+    "Optional: audit components for `pointerEvents` prop and move it into style={{ pointerEvents: '...' }} to silence the RN-Web warning.",
+    "(Carry-over from iteration_1) Backend MAD==0 outlier detection bug in /app/backend/prediction_engine.py:114-128 is still outstanding."
+  ],
+  "critical_code_review_comments": [
+    "PredictionPanel.tsx ProbabilityCurve sizes the SVG via Dimensions.get('window').width - that works on web because the screen width matches the viewport, but on tablet/landscape this will render a too-wide curve overflowing the card. Consider using onLayout of the parent Card to measure available width instead of Dimensions (low priority).",
+    "insights.tsx fetches /analytics, /symptom-patterns, /prediction in parallel; the latter two .catch(() => null) which is good — but the user gets no error UI if /prediction fails. Consider an inline error/retry treatment instead of a silent null (low priority).",
+    "PredictionPanel destructures `value: any` on HealthFlag — change to `unknown` and narrow before use to keep medical-grade strictness."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped per request)", "frontend": "100% (17/17 testIDs render with expected content)"},
+  "seed_data_creation": "None. Used the pre-seeded demo@cycle.app account (13 cycles already tracked).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Login button text is 'Sign In' (not 'Log in'). Insights tab is reachable via clicking the visible 'Insights' bottom-tab label. The ScrollView at [data-testid=\"insights-screen\"] is the scrollable element on web — use element.scrollTo(0, y) on that node (not window.scrollTo) when scripting scroll. All 17 expected testIDs are present and contain expected content; viewport 430x920 matches spec. The demo account currently yields: predicted Jul 2, window Jun 23-Jul 11, confidence 63%, regularity 'Moderately Irregular', 13 cycles tracked, 2 trend insights, 2 health flags.",
+  "rca_of_issue": "n/a — feature passes frontend testing."
+}

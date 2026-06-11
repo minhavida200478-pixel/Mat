@@ -1,0 +1,33 @@
+{
+  "summary": "Frontend verification of P2 'Prediction accuracy' card + regressions (PredictionPanel, partner-view shared.tsx Platform import fix, EventDetailSheet ScrollView removal). All 6 review-request scenarios pass. Backend /api/prediction/history?limit=24 sanity-checked (count=9, validationMetrics.metrics={mae:0.74, success_rate:100.0, stability_score:88.7, samples:4}). Demo user Insights renders prediction-accuracy-card with metric tiles (accuracy-mae '±0.74 days', accuracy-success '100%', accuracy-stability '89/100') and accuracy-trail-chart with Confidence + Reliability legend; all five PredictionPanel cards (window/reliability/intervals/prob/fertile) still render. Partner tab and direct nav to /partner-view?id=test&name=Demo both load without 'Platform is not defined' error — Platform import fix in src/components/partner/shared.tsx is verified. Calendar tab loads, day tap selects day with no red-screen. New-user (registered + DEV-mode verified mid-test) sees Insights cold-start without any crash and the accuracy card is correctly hidden (prediction.predictedDate gating works). Pre-existing React 19 'element.ref' console errors and shadow*/pointerEvents deprecations remain in the app (not introduced by this iteration).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {
+        "component": "React 19 element.ref (pre-existing)",
+        "issue": "Console errors 'Accessing element.ref was removed in React 19' still emitted on every screen load — originate from a third-party dep (likely @gorhom/bottom-sheet or reanimated). Pre-existing; called out in PRD; not introduced by this iteration."
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_fresh_import_smoke.py",
+    "/app/test_reports/pytest/fresh_import_smoke.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "AccuracyTrail correctly gated behind prediction?.predictedDate in (tabs)/insights.tsx:93 — new users with no cycles never render the card.",
+    "AccuracyTrail.tsx handles both empty (hasMetrics=false && hasTrail=false) and partial (only one series >=2) states gracefully.",
+    "shared.tsx now imports Platform from 'react-native' (line 5) and uses Platform.select for segBtnActive shadow — verified both Partner tab and /partner-view route load cleanly.",
+    "ReliabilityRing.tsx pointerEvents now on style (line 59) — no functional regression observed; the deprecated 'props.pointerEvents' console warning seen in logs is coming from other un-migrated files."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "100%", "frontend": "100%" },
+  "seed_data_creation": "Created one transient new user via /api/auth/register + DEV-mode verify-email to test the no-cycle gating; not cleaned up but isolated by timestamped email.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Demo user demo@cycle.app/DemoPass123! has 8 cycles + 9 prediction_history rows and back-tested metrics (mae 0.74, success 100%, stability 88.7, samples 4). Use testIDs prediction-accuracy-card, accuracy-mae, accuracy-success, accuracy-stability, accuracy-trail-chart, accuracy-metrics. Partner-view route requires login; direct URL /partner-view?id=<any>&name=<x> renders 'No shared data available' fallback when id is invalid — still useful as a smoke test for the shared.tsx import. EventDetailSheet opens only when an existing logged event is tapped in the calendar; tapping an empty day just selects it. Backend register field is 'full_name' not 'name' (extra=forbid).",
+  "rca_of_issue": "N/A — all features verified working."
+}

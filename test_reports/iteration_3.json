@@ -1,0 +1,27 @@
+{
+  "summary": "Backend-only verification of Phase 2 (v2) prediction engine wired into GET /api/prediction. Added /app/backend/tests/test_prediction_v2_endpoint.py (13 live API tests, 13/13 PASS in 60.87s against the public preview URL). Coverage: (a) Auth gating — GET /api/prediction with no token / bad token returns 401/403. (b) v2 contract — engineVersion='2.0.0', algorithmVersion='ensemble-v1', and all v2 fields present (reliabilityIndex {score,classification,factors}, predictionIntervals p50/p75/p90/p95 with monotonic half_width_days and source in {empirical_error,model_variance}, dataSufficiency {level,label,max_confidence}, modelWeights summing to 1.0 with no model >0.40, predictionErrors {rolling_3/6/12,bias_days}, validationMetrics {mae,rmse,success_rate,stability_score,samples}, changePoints, outlierClassifications, trendForecast {cycle/variability/period_length_strength,messages}, populationPrior {avg cycle/period, variance, blend_weight in [0,1]}, benchmark {engine_version=2.0.0,by_cycle_count,records}, auditTrail {prediction_id,contributing_cycles,excluded_cycles,outlier_adjustments,trend_adjustments,confidence_source,model_versions}). (c) Backward compat — all v1 core fields still present (predictedDate/earliestDate/latestDate/confidence/regularity/cycleLengthPrediction/probabilityDistribution[14]/fertileWindowStart+End/ovulationDate/healthFlags/trendInsights/profile). (d) Determinism — two identical GET /api/prediction?today=2025-06-01 calls byte-match after stripping auditTrail.generated_at; auditTrail.prediction_id is stable. (e) Cold-start sufficiency cap — parametrized for 1/2/4 cycles -> level 1/2/3 with max_confidence 30/50/75, asserted confidence <= max_confidence, populationPrior.blend_weight in [0,1). (f) Outlier classification — a 5-day gap is classified 'Logging Error' (wf=0.05) and surfaces in auditTrail.excluded_cycles; a 90-day gap is classified 'Missed Cycle' (wf=0.10) and is excluded too. (g) Regression smoke — /api/dashboard, /api/daily-summary, /api/analytics still 200 with expected keys. The new test file lives at /app/backend/tests/test_prediction_v2_endpoint.py; JUnit XML at /app/test_reports/pytest/prediction_v2_endpoint.xml. NOTE: The Phase 2 wiring ships green from a backend integration standpoint — no critical or minor issues found.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_prediction_v2_endpoint.py",
+    "/app/test_reports/pytest/prediction_v2_endpoint.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "/app/backend/server.py /api/prediction handler still caches the derived UserCycleProfile on every GET via db.cycle_profiles.update_one(upsert=True). Phase 2 was scoped as 'computed-only, no DB persistence of audit/history' — that scope is honored (audit/history is NOT persisted), but the profile cache is a DB write on every read. This pre-existed v2 and is intentional per code comment, but worth flagging since the request emphasized 'computed-only'.",
+    "outlierClassifications entries use the key 'outlier_type' (e.g. 'Logging Error', 'Missed Cycle', 'Short Cycle', 'Long Cycle', 'Unknown Anomaly'), not 'type'. The review request says 'a type' — fine, but downstream consumers should standardise on 'outlier_type' to avoid confusion with auditTrail.trend_adjustments.change_points[].type.",
+    "predictionEngine v2.predict() returns numeric 'confidence' rounded to 1dp (float), while v1 returned an int. Existing UI in iteration_2 rendered '63%' — confirm round(x,1) doesn't display as '63.0%' anywhere on the frontend (out of scope this iteration but worth a frontend retest if the UI shows decimals)."
+  ],
+  "updated_files": ["/app/backend/tests/test_prediction_v2_endpoint.py"],
+  "success_rate": {"backend": "100% (13/13 new Phase 2 tests pass)", "frontend": "n/a (skipped per request)"},
+  "seed_data_creation": "Each test that needs cycle history registers its own fresh user via the conftest register_user() helper (DEV email mode reads codes from /var/log/supervisor/backend.err.log) and seeds cycles via POST /api/cycles. No persistent fixtures left behind.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Phase 2 v2 engine is wired into GET /api/prediction and verified end-to-end. New regression suite: /app/backend/tests/test_prediction_v2_endpoint.py (13 tests, full v2 contract + determinism + cold start + outliers + regression). Existing /app/backend/tests/test_prediction_endpoint.py still uses the live API and is slow because the register_user helper waits out 429s — prefer running the v2 suite + test_prediction_engine_v2.py for fast feedback. Outlier classifications use key 'outlier_type' (not 'type'); excluded_cycles is the subset of outliers with weight_factor <= 0.15. auditTrail.generated_at is the only field that differs across identical calls (wall-clock metadata). populationPrior.blend_weight = clamp(n_cycles/6, 0, 1) — exactly 1.0 once >=6 cycles. dataSufficiency.max_confidence caps body.confidence (verified for levels 1/2/3).",
+  "rca_of_issue": "n/a — feature passes backend testing."
+}

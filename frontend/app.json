@@ -1,0 +1,121 @@
+{
+  "expo": {
+    "name": "Cycle Health",
+    "slug": "cycle-health",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "cyclehealth",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#000"
+      },
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.USE_EXACT_ALARM"
+      ],
+      "package": "com.cyclehealth.app"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cyclehealth.app",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Unlock your private health data with Face ID",
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
+      }
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#000"
+        }
+      ],
+      "expo-font",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Unlock your private health data with Face ID"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#E91E8C",
+          "sounds": []
+        }
+      ],
+      "expo-background-task",
+      "expo-quick-actions",
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "HealthSummary",
+              "label": "Cycle Health Summary",
+              "minWidth": "250dp",
+              "minHeight": "100dp",
+              "description": "View your daily health stats at a glance",
+              "previewImage": "./assets/images/adaptive-icon.png",
+              "resizeMode": "horizontal|vertical",
+              "widgetFeatures": "reconfigurable",
+              "targetCellWidth": 3,
+              "targetCellHeight": 2
+            },
+            {
+              "name": "QuickLog",
+              "label": "Quick Log",
+              "minWidth": "180dp",
+              "minHeight": "180dp",
+              "description": "Quick logging actions from your home screen",
+              "previewImage": "./assets/images/adaptive-icon.png",
+              "resizeMode": "horizontal|vertical",
+              "widgetFeatures": "reconfigurable",
+              "targetCellWidth": 2,
+              "targetCellHeight": 3
+            },
+            {
+              "name": "NextPeriod",
+              "label": "Next Period Countdown",
+              "minWidth": "180dp",
+              "minHeight": "110dp",
+              "description": "Days until your next predicted period",
+              "previewImage": "./assets/images/adaptive-icon.png",
+              "resizeMode": "horizontal|vertical",
+              "widgetFeatures": "reconfigurable",
+              "targetCellWidth": 3,
+              "targetCellHeight": 2
+            }
+          ]
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id"
+      }
+    }
+  }
+}

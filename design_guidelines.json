@@ -1,0 +1,252 @@
+{
+  "project_type": "React Native Expo Mobile App",
+  "theme": "LIGHT",
+  "archetype": "Archetype 1 (Organic & Earthy) blended with Medical-Grade Minimalism",
+  "design_philosophy": "A privacy-first, calming, and clinically clean interface. We avoid heavy dropshadows and borders, utilizing a flat monochrome base with deep calming primary accents (Indigo-Teal). Typography drives visual hierarchy. Every screen must feel secure, objective, and deeply respectful of the user's data.",
+  "colors": {
+    "background": {
+      "primary": "#FFFFFF",
+      "secondary": "#F5F7F8",
+      "tertiary": "#EBEFEF"
+    },
+    "brand": {
+      "primary": "#2A7A78",
+      "primary_light": "#DEF2F1",
+      "indigo_accent": "#1F3A5F",
+      "indigo_light": "#E8ECF1"
+    },
+    "text": {
+      "primary": "#1A2526",
+      "secondary": "#576A6B",
+      "tertiary": "#8A9F9F",
+      "inverse": "#FFFFFF"
+    },
+    "status": {
+      "period_active": "#D9534F",
+      "period_light": "#FADBD8",
+      "fertile": "#5C9EAD",
+      "fertile_light": "#E0F0F2",
+      "success": "#3F8A6B",
+      "error": "#C64646"
+    },
+    "ui": {
+      "border": "#E2E8E8",
+      "divider": "#F0F4F4",
+      "overlay": "rgba(26, 37, 38, 0.4)"
+    }
+  },
+  "typography": {
+    "font_families": {
+      "heading": "Work Sans",
+      "body": "IBM Plex Sans"
+    },
+    "scale": {
+      "h1": { "fontSize": 32, "lineHeight": 40, "letterSpacing": -0.5, "fontWeight": "700" },
+      "h2": { "fontSize": 24, "lineHeight": 32, "letterSpacing": -0.3, "fontWeight": "600" },
+      "h3": { "fontSize": 20, "lineHeight": 28, "letterSpacing": -0.2, "fontWeight": "600" },
+      "body_large": { "fontSize": 18, "lineHeight": 26, "fontWeight": "400" },
+      "body_main": { "fontSize": 16, "lineHeight": 24, "fontWeight": "400" },
+      "body_secondary": { "fontSize": 14, "lineHeight": 20, "fontWeight": "400" },
+      "caption": { "fontSize": 12, "lineHeight": 16, "letterSpacing": 0.5, "fontWeight": "500", "textTransform": "uppercase" }
+    }
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 16,
+    "lg": 24,
+    "xl": 32,
+    "xxl": 48,
+    "screen_padding": 24
+  },
+  "components": {
+    "cards": {
+      "flat_style": {
+        "backgroundColor": "#FFFFFF",
+        "borderRadius": 16,
+        "padding": 24,
+        "borderWidth": 1,
+        "borderColor": "#E2E8E8",
+        "shadowColor": "transparent",
+        "elevation": 0
+      },
+      "highlight_style": {
+        "backgroundColor": "#DEF2F1",
+        "borderRadius": 16,
+        "padding": 24,
+        "borderWidth": 0
+      }
+    },
+    "buttons": {
+      "primary": {
+        "backgroundColor": "#2A7A78",
+        "borderRadius": 12,
+        "paddingVertical": 16,
+        "paddingHorizontal": 24,
+        "alignItems": "center",
+        "justifyContent": "center"
+      },
+      "primary_text": {
+        "color": "#FFFFFF",
+        "fontSize": 16,
+        "fontWeight": "600"
+      },
+      "secondary": {
+        "backgroundColor": "#F5F7F8",
+        "borderRadius": 12,
+        "paddingVertical": 16,
+        "paddingHorizontal": 24,
+        "alignItems": "center",
+        "justifyContent": "center"
+      },
+      "secondary_text": {
+        "color": "#1A2526",
+        "fontSize": 16,
+        "fontWeight": "600"
+      }
+    },
+    "inputs": {
+      "text_field": {
+        "backgroundColor": "#F5F7F8",
+        "borderRadius": 12,
+        "paddingHorizontal": 16,
+        "paddingVertical": 16,
+        "fontSize": 16,
+        "color": "#1A2526",
+        "borderWidth": 1,
+        "borderColor": "transparent"
+      },
+      "text_field_active": {
+        "borderColor": "#2A7A78",
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "chips": {
+      "default": {
+        "backgroundColor": "#F5F7F8",
+        "borderRadius": 20,
+        "paddingVertical": 8,
+        "paddingHorizontal": 16,
+        "borderWidth": 1,
+        "borderColor": "#E2E8E8"
+      },
+      "selected": {
+        "backgroundColor": "#2A7A78",
+        "borderColor": "#2A7A78"
+      },
+      "text_default": {
+        "color": "#576A6B",
+        "fontSize": 14,
+        "fontWeight": "500"
+      },
+      "text_selected": {
+        "color": "#FFFFFF",
+        "fontSize": 14,
+        "fontWeight": "600"
+      }
+    }
+  },
+  "layout_blueprints": {
+    "AuthScreen": {
+      "layout": "Vertical stack centered",
+      "elements": "Logo/Brand Title, Biometric unlock prompt (FaceID/TouchID icon), PIN pad fallback, 'Medical-grade privacy' disclaimer text.",
+      "visuals": "Abstract soft background (cycle_ring_bg image) with glass-like semi-transparent card."
+    },
+    "DashboardScreen": {
+      "layout": "Scrollable vertical list. No top app bar, large typographic header.",
+      "elements": [
+        "Header: Greeting & current date",
+        "Hero: Cycle Countdown Ring (SVG based, displaying 'Day X', 'Fertile Window in Y days').",
+        "Quick Log Actions: Horizontal scroll or bento grid of flat cards for 'Start Period', 'Log Symptom', 'Log Mood'.",
+        "Disclaimer text at the bottom: 'Predictions are statistical estimates, not medical certainty.'"
+      ]
+    },
+    "CalendarScreen": {
+      "layout": "Standard calendar grid layout over a flat card.",
+      "elements": [
+        "Month toggle controls",
+        "7x5 Grid. Days with periods have a #D9534F dot or soft background. Fertile windows have a #5C9EAD dot.",
+        "Bottom sheet or list below calendar detailing logged symptoms and moods for the selected day."
+      ]
+    },
+    "LogSymptomScreen": {
+      "layout": "Form layout with generous spacing.",
+      "elements": [
+        "List of symptoms (Cramps, Headache, Acne, Fatigue, Bloating, Nausea, Back pain, Breast tenderness).",
+        "Severity Selector for each selected symptom: Segmented control (None, Mild, Moderate, Severe).",
+        "Journaling text area (TextInput) with tags.",
+        "Visibility toggle: 'Private' vs 'Shared with Partner'."
+      ]
+    },
+    "PartnerSharingScreen": {
+      "layout": "List and settings layout.",
+      "elements": [
+        "Hero illustration (privacy_shield image).",
+        "Generate Time-Limited Token button.",
+        "Active Partner List.",
+        "Granular Data Toggles: 'Share Cycle Phase', 'Share Moods', 'Share Symptoms'.",
+        "Info banner explaining end-to-end encryption or read-only access."
+      ]
+    },
+    "AnalyticsScreen": {
+      "layout": "Dashboard widget layout (Bento grid mode B - 'Control Room')",
+      "elements": [
+        "Averages Card: Cycle length, Period length.",
+        "Regularity Score (large typography).",
+        "Symptom Frequency Bar Chart (using React Native SVG or Victory Native).",
+        "Flat borders, dense data presentation but high contrast."
+      ]
+    }
+  },
+  "interactions_and_motion": {
+    "transitions": "React Native LayoutAnimation or Reanimated for smooth, subtle mounting of components.",
+    "buttons": "Opacity feedback on press (activeOpacity={0.7}). No springy bouncy effects, keep it clinical and precise."
+  },
+  "testing_attributes": {
+    "convention": "Use standard React Native `testID` prop on all interactive elements. Follow role-based kebab-case.",
+    "examples": [
+      "testID='login-submit-button'",
+      "testID='dashboard-quick-log-symptom'",
+      "testID='calendar-day-15'",
+      "testID='partner-share-generate-token-button'"
+    ]
+  },
+  "media": {
+    "images": [
+      {
+        "url": "https://static.prod-images.emergentagent.com/jobs/baa58e36-49a4-4e78-8a97-7b22765e67a4/images/2c4dda9da70095ebf0328c41167bd8074aa88690c7c7cd6724b59d787f0f1456.png",
+        "description": "Minimalist medical-grade abstract background, soft calming teal and off-white gradients",
+        "category": "onboarding_bg",
+        "usage": "Use as a full-screen background image (with resizeMode='cover' and low opacity) on the Auth/Onboarding screens."
+      },
+      {
+        "url": "https://static.prod-images.emergentagent.com/jobs/baa58e36-49a4-4e78-8a97-7b22765e67a4/images/655f66631e2bd86cb18d318d3ed48652272a6f86200140c294069bca8f71effe.png",
+        "description": "Flat minimalist illustration of a safe lock or shield in teal and indigo",
+        "category": "privacy_shield",
+        "usage": "Use as the hero illustration on the Partner Sharing portal to reinforce trust and security."
+      },
+      {
+        "url": "https://static.prod-images.emergentagent.com/jobs/baa58e36-49a4-4e78-8a97-7b22765e67a4/images/4ed4a59f2b747928e61c38a17f3fbd14706581433f2a1dd82e51178d5ba0e58b.png",
+        "description": "Abstract soft circular ripples in calming teal on a pure white background",
+        "category": "cycle_ring_bg",
+        "usage": "Use as a background element behind the main cycle countdown ring on the Dashboard."
+      },
+      {
+        "url": "https://images.pexels.com/photos/3394939/pexels-photo-3394939.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Serene teal water surface with ripples",
+        "category": "nature_calm_texture",
+        "usage": "Use inside the Journaling feature header to evoke calmness and reflection."
+      }
+    ]
+  },
+  "instructions_to_main_agent": [
+    "This is a React Native Expo application. DO NOT use HTML/CSS or Tailwind classes. Translate all design tokens into React Native `StyleSheet` objects.",
+    "Follow flat design principles: Do not apply `shadowColor` or `elevation` unless explicitly defining a modal/bottom sheet.",
+    "Implement the UI using functional components and hooks.",
+    "Use standard React Native components (`View`, `Text`, `TouchableOpacity`, `TextInput`).",
+    "For the Cycle Countdown Ring and Analytics charts, utilize `react-native-svg` to ensure crisp vector rendering.",
+    "Ensure all interactive elements have a `testID` prop to comply with testing rules.",
+    "For icons, use `@expo/vector-icons` (Lucide or Feather) with the defined `text.secondary` or `brand.primary` colors.",
+    "Never use placehold.it or similar dummy image services. Use ONLY the URLs provided in the `media` array above."
+  ]
+}

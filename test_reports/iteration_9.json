@@ -1,0 +1,26 @@
+{
+  "summary": "Re-import smoke (iteration 9) PASSED end-to-end on fresh environment. Backend: 13/13 fresh-import smoke tests green (test_fresh_import_smoke.py, JUnit /app/test_reports/pytest/iteration_9_smoke.xml) including /api/health, demo login, /auth/me, /api/prediction, /api/prediction/history, /api/cycles, /api/health-events (date-range), /api/timeline, /api/water/today, /api/meals/today, /api/medications/today, 401 on unauth, and full register -> DEV verify-email (code scraped from backend.err.log) -> login flow. Direct curl spot-checks on demo@cycle.app: GET /api/cycles returns exactly 8 seeded cycles; GET /api/prediction returns predictedDate=2026-06-16, confidence=95, cycleLengthPrediction=28 (v2 ensemble engine, matches acceptance criteria); /api/prediction/history and /api/health-events both 200. Frontend (mobile 390x844, EXPO_PUBLIC_BACKEND_URL): login with demo creds redirects to dashboard (Today tab), bottom-tab navigation works for Today, Calendar, Insights, Partner. Insights screen renders prediction-panel showing 'Jun 16' / 'Likely window Jun 15 – Jun 17' / CONFIDENCE 95% / 'Very Regular' badge / '8 cycles tracked' / Reliability index 91/100 Excellent / Prediction Range list (50/75/90/95%). No red-screen, no relevant console errors (only 2 benign React-19 'element.ref' deprecation warnings from a third-party lib).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_fresh_import_smoke.py",
+    "/app/test_reports/pytest/iteration_9_smoke.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "test_fresh_import_smoke.py uses a stale hardcoded default URL ('https://pixel-mat-dev.preview.emergentagent.com') as fallback for EXPO_PUBLIC_BACKEND_URL — works when env is exported, but if a future agent runs pytest without exporting the env, tests would silently hit the wrong host. Recommend dropping the default so missing env fails fast (matches the system rule 'omit default values so missing config fails fast').",
+    "Two React-19 console warnings: 'Accessing element.ref was removed in React 19. ref is now a regular prop.' — comes from a third-party RN-web component (likely react-native-svg / lottie). Not blocking, but flag for future RN/React upgrade hygiene."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "100% (13/13 smoke)", "frontend": "100% (login + 4 tabs + insights prediction panel)" },
+  "seed_data_creation": "No new seed data created by this iteration. test_fresh_import_smoke.py creates one TEST_smoke_<uuid>@example.com user via DEV register/verify flow (not cleaned, isolated).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend URL: https://mat-mobile-app.preview.emergentagent.com. Always 'export EXPO_PUBLIC_BACKEND_URL=...' before running backend smoke tests (the file has a stale default URL). Demo user demo@cycle.app/DemoPass123! has 8 seeded cycles Nov 2025 - May 2026 and predicts 2026-06-16 @ confidence 95 with cycleLengthPrediction=28. /api/auth/register rate-limit is 10/min + 30/hour in-memory — 'sudo supervisorctl restart backend' to reset. DEV verification codes are in /var/log/supervisor/backend.err.log (pattern: 'Verification code for {email}: NNNNNN'). Frontend tabs are: Today (index), Calendar, Insights, Partner. Key insights testIDs: insights-screen, prediction-panel, prediction-accuracy-card.",
+  "rca_of_issue": "N/A — re-import smoke; environment is healthy."
+}

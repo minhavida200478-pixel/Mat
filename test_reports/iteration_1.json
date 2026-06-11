@@ -1,0 +1,40 @@
+{
+  "summary": "Backend-only testing of the new MAT /api/prediction endpoint. Created /app/backend/tests/test_prediction_endpoint.py with 13 tests covering: auth gating (401/403), response contract keys, empty-user defaults, single-cycle behavior (last_start + 28d, regularity 'Unknown'), 12 regular 28-day cycles (regularity Regular/Very Regular, confidence>=60, distribution length 14, peak at dayOffset 0, earliest<predicted<latest), outlier resilience (95-day gap among 28-day cycles), ?today= param, determinism, and a regression smoke of /api/health, /api/auth/login (demo@cycle.app), /api/cycles CRUD, /api/dashboard, /api/analytics. Result: 12/13 PASSED. The outlier-resilience test FAILED: with a single 95-day gap inside otherwise-identical 28-day cycles, MAD == 0 so detect_outliers() flags NOTHING (outlier_count=0), the adaptive bias swings to -8.38 days, and cycleLengthPrediction collapses to 20 (spec requires ~24-32 and outlier_count >= 1). All other tests, including determinism and the full regression smoke, pass.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "GET /api/prediction (engine: prediction_engine.detect_outliers)",
+        "issue": "MAD-based outlier detection collapses to 0 when most cycle lengths are identical (e.g. nine 28s + one 95). detect_outliers() returns all False because MAD==0, the 95-day gap is NEVER flagged, profile.outlier_count is 0 (spec requires >=1), and the adaptive bias from backtest_errors swings to -8.38 days, dragging cycleLengthPrediction down to 20 (spec requires sane ~24-32). Reproduction: starts spaced 28,28,28,95,28,28,28,28,28 days. Fix idea: when MAD==0 but max(|x-median|) is large (or n>=4), fall back to std-based detection (e.g. |x-median| > k*std with k~=2.5) or to a fixed clinical threshold (|len-median|>20). Reference: /app/backend/prediction_engine.py:114-128 (detect_outliers).",
+        "priority": "HIGH"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_prediction_endpoint.py",
+    "/app/test_reports/pytest/prediction_endpoint.xml"
+  ],
+  "action_items": [
+    "Fix detect_outliers() in /app/backend/prediction_engine.py to handle the MAD==0 degenerate case (when the bulk of cycles are identical). Without this, one missed period silently skews future predictions and the spec's outlier_count>=1 / sane-prediction contract fails.",
+    "Re-run /app/backend/tests/test_prediction_endpoint.py::TestOutlier after the fix to confirm cycleLengthPrediction in 24-32 and profile.outlier_count >= 1."
+  ],
+  "critical_code_review_comments": [
+    "prediction_engine.detect_outliers: MAD==0 branch returns no outliers even when a value is dramatically far from the median — this is the root cause of the failing outlier test and is a real medical-safety concern (a missed period skews predictions for months).",
+    "server.py compute_prediction (legacy) and the new prediction_engine.predict run in parallel — /api/dashboard still uses the legacy compute_prediction. Consider unifying so dashboard and /api/prediction never disagree."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_prediction_endpoint.py (new)"
+  ],
+  "success_rate": {"backend": "92% (12/13)", "frontend": "n/a (skipped per request)"},
+  "seed_data_creation": "Each test registers a fresh verified user via the existing register_user fixture and seeds cycles per-test via POST /api/cycles. The seeded demo account (demo@cycle.app / DemoPass123!) is used only for the login regression test (no writes).",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run `cd /app/backend && python -m pytest tests/test_prediction_endpoint.py -v` to re-validate after the fix. The single failure is TestOutlier::test_outlier_does_not_corrupt_prediction. All 71 existing engine unit tests in tests/test_prediction_engine.py were not re-run here (they were reported passing on import) — re-run them after any engine change.",
+  "rca_of_issue": "RCA — Outlier not detected when MAD==0: detect_outliers() uses threshold = 3 * MAD (line 127 of prediction_engine.py). When >50% of cycle lengths are identical (very common for regular users), the median absolute deviation equals 0, so threshold = 0 and the early-return path at line 125-126 short-circuits to 'no outliers'. The 95-day cycle therefore enters weighted_average() un-discounted, and walk-forward backtest_errors() produces large negative residuals (because predictions immediately after the 95-day gap massively over-shoot 28-day cycles). adaptive_bias() returns the median of those errors (-8.38), and the final prediction = clamp(weighted_avg + bias) lands at 20 days. Mitigation: when MAD==0 but len(values)>=4 and any |x-median| > 10 (or use std-based fallback), still flag those points as outliers."
+}

@@ -1,0 +1,51 @@
+{
+  "summary": "Frontend-only review of Timeline→Calendar merge. All 11 acceptance criteria PASS. Bottom tab bar shows only Today/Calendar/Insights/Partner (no Timeline). Direct nav to /timeline returns Expo Router 'Unmatched Route' (404) — old screen is gone. Calendar defaults to June 2026 (current date) and shows 6 seeded events on 2026-06-09 once tapped; events render as tappable rows with testIDs calendar-event-<id>. Filter chips (calendar-filter-symptom -> 1 row 'Cramps', calendar-filter-all -> 6 rows) and search (query 'Ibu' -> 1 row 'Ibuprofen') both work. Tapping an event opens the EventDetailSheet with Edit + Delete buttons visible (api.del fix is in place at EventDetailSheet.tsx:98). Empty day (June 1) shows calendar-day-empty with copy 'No entries for this day. Tap Log to add one.' Logged-day dot is visible on June 9 (and other seeded days). Regression: /, /insights, /partner all render without red-screen errors. One minor visual issue: on an empty day the closed @gorhom/bottom-sheet renders its 'Event Details' title in the calendar card area on web (cosmetic only, no functional impact).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "EventDetailSheet (web)",
+        "issue": "On web, @gorhom/bottom-sheet with index={-1} still renders its 'Event Details' title text inside the calendar day card when the day has no events, sitting just below the day header. Functionally harmless (sheet is closed, no Edit/Delete buttons shown) but visually confusing on empty days. Reference: /app/frontend/src/components/BottomSheet/EventDetailSheet.tsx:284-327",
+        "testID": "calendar-day-events / calendar-day-empty",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "calendar",
+        "issues": [
+          "Filter chip row clips the last chip ('Notes') on a 390px-wide viewport because the horizontal ScrollView and the search-toggle button share the toolbar row. Users can still scroll horizontally, but the affordance (faded edge / partial chip) is missing."
+        ]
+      }
+    ],
+    "react_native_issues": [
+      {
+        "component": "Console deprecations (React Native Web)",
+        "issue": "Multiple deprecation warnings logged on every screen: 'shadow* style props are deprecated. Use boxShadow.', 'props.pointerEvents is deprecated. Use style.pointerEvents', 'Image: style.resizeMode is deprecated. Please use props.resizeMode.' Pre-existing, not introduced by this change, but should be cleaned up project-wide."
+      },
+      {
+        "component": "React 19 / library compat",
+        "issue": "Console errors on calendar render: 'Accessing element.ref was removed in React 19. ref is now a regular prop.' Indicates a dependency (likely @gorhom/bottom-sheet or react-native-reanimated/expo) is not yet React-19 compatible. Pre-existing."
+      }
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Optional polish) Conditionally render <EventDetailSheet/> only when an event is selected, or move it outside the Card, to avoid the stray 'Event Details' title showing on empty days on web.",
+    "(Optional) Add a fade/edge indicator on the filter chip ScrollView so users see there is more to scroll horizontally."
+  ],
+  "critical_code_review_comments": [
+    "calendar.tsx onPress closure uses setSelected(iso) which is fine, but `selectedEvents` recomputes on each render via index lookup — already efficient via eventsByDate memo. Good.",
+    "EventDetailSheet correctly uses api.del (verified line 98). Edit/Delete actions and onDelete callback wiring through DayEvents -> calendar.tsx handleDeleted is correct.",
+    "DayEvents resets searchQuery on toggle off — good UX.",
+    "No leftover references to the old /(tabs)/timeline route in app/(tabs)/_layout.tsx — Timeline tab is fully removed."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a (skipped)", "frontend": "100% (11/11 acceptance criteria)" },
+  "seed_data_creation": "None created. Verified the 6 pre-seeded events on 2026-06-09 for demo@cycle.app (water, meal, mood, symptom/Cramps, medication/Ibuprofen, note). None were deleted during this run.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Calendar opens on the current month (June 2026 today). Seed data is on 2026-06-09 — tap testID 'calendar-day-9' after ensuring month label is 'June 2026'. Bottom sheet 'Event Details' title may visually appear inside the empty-day card on web; this is a known @gorhom/bottom-sheet on web cosmetic quirk, not a real bug.",
+  "rca_of_issue": "n/a — feature works as specified."
+}

@@ -1,0 +1,41 @@
+{
+  "summary": "Fresh-import smoke verification (backend + frontend) for MAT/Cycle Health. Backend: 13/13 pytest cases pass against the public preview URL — /api/health=ok, demo login returns access_token, and all authenticated core endpoints (prediction, prediction/history, cycles, health-events with date range, timeline (daily-logs equivalent), water/today, meals/today, medications/today, auth/me) return 200 with valid payloads. End-to-end register → read DEV-mode 6-digit code from /var/log/supervisor/backend.err.log → verify-email → login flow works. Frontend (Expo web, mobile 390x844 viewport): login screen renders with correct testIDs, signing in as demo@cycle.app / DemoPass123! navigates into the app, and all four tabs (Today/Calendar/Insights/Partner) plus /settings render without red-screen errors. Insights shows the cold-start prediction panel ('Log your first period to unlock medical-grade predictions') as expected for the seeded-but-empty demo account. No new bugs introduced by the import. Pre-existing React 19 'element.ref' deprecation console errors and RN-Web shadow*/pointerEvents warnings remain (as called out in PRD — ignored per request).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {
+        "component": "React 19 / library compat",
+        "issue": "Repeated console errors: 'Accessing element.ref was removed in React 19. ref is now a regular prop.' originating from a dependency (likely @gorhom/bottom-sheet or expo/react-native-reanimated). Pre-existing, not introduced by the import. Reference: visible on /(tabs)/calendar and dashboard render."
+      },
+      {
+        "component": "React Native Web deprecations",
+        "issue": "Console deprecation warnings: 'shadow* style props are deprecated. Use boxShadow.', 'props.pointerEvents is deprecated. Use style.pointerEvents', 'Image: style.resizeMode is deprecated.' Pre-existing project-wide, called out in PRD; cosmetic on web."
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_fresh_import_smoke.py",
+    "/app/test_reports/pytest/fresh_import_smoke.xml"
+  ],
+  "action_items": [
+    "(Optional) Upgrade @gorhom/bottom-sheet (and any reanimated peer) once a React 19-compatible release is published to silence the 'element.ref' console errors.",
+    "(Optional, low priority) Migrate RN-Web deprecated style props (shadow*, pointerEvents prop, Image.style.resizeMode) project-wide for clean web console."
+  ],
+  "critical_code_review_comments": [
+    "Auth flow stores emails lowercased server-side; tests must compare emails case-insensitively (fixed in test file).",
+    "There is no /api/daily-logs route; the daily-logs equivalent is /api/timeline (returns {count, events}). Confirmed via grep over /app/backend/*.py.",
+    "Demo user is seeded but cold-start: /api/cycles=[], /api/health-events=[], /api/timeline.events=[] — frontend handles this gracefully (cold-start copy)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_fresh_import_smoke.py (new pytest smoke suite — 13 cases)"
+  ],
+  "success_rate": { "backend": "100% (13/13)", "frontend": "100% (login + 4 tabs + settings render OK)" },
+  "seed_data_creation": "Two throwaway register/verify users created during the DEV-mode verification test (TEST_smoke_*@example.com). Not cleaned up — they have no data attached so they should be harmless; main agent can drop them with a one-off `db.users.delete_many({\"email\": {\"$regex\": \"^test_smoke_\"}})` if desired.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Public URL: https://pixel-mat-dev.preview.emergentagent.com (from frontend/.env EXPO_PUBLIC_BACKEND_URL). Demo creds: demo@cycle.app / DemoPass123! (verified). DB is fresh — no cycles/health-events seeded. DEV-mode verification codes are in /var/log/supervisor/backend.err.log as '[EMAIL DEV MODE] ... Verification code for <email>: <code>'. Re-run backend suite: `pytest /app/backend/tests/test_fresh_import_smoke.py -v`.",
+  "rca_of_issue": "n/a — import is fully functional; both backend and frontend behave as expected for a fresh DB."
+}

@@ -1,0 +1,33 @@
+{
+  "summary": "Phase 2 persistence (P2/P11/P14) verified end-to-end. All 218 backend tests pass: 11/11 NEW test_phase2_persistence.py (P2 history-resolution, P11 monthly snapshots, P14 benchmark_records, response regression), 171/171 prediction engine unit suites (test_prediction_engine[_v2].py), 13/13 test_prediction_v2_endpoint.py, 13/13 test_prediction_endpoint.py and 10/10 test_prediction_history_endpoint.py. Live spot-checks on demo@cycle.app: GET /api/prediction is deterministic across calls (auditTrail.generated_at masked), returns full v2 contract (predictedDate=2026-07-25, confidence=95, reliabilityIndex.score=92, predictionIntervals p50/p75/p90/p95+source, 5 model_prediction_* models, modelWeights max=0.2184 < 0.40, validationMetrics, dataSufficiency, benchmark). Performance: 54-57ms (3 calls, well under <200ms budget). GET /api/prediction/history returns history (count=10), validationMetrics, and the new monthlySnapshots array (1 entry for current month with metrics {mae,rmse,success_rate,stability_score,samples}); two same-month calls produced exactly ONE snapshot row (idempotent). Frontend regression (mobile viewport 390x844): Insights tab for demo user renders prediction-panel + prediction-accuracy-card with accuracy-mae/success/stability tiles, Reliability ring, and prediction-range list — no red-screen, no relevant console errors. No new react-native deprecations introduced.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_phase2_persistence.py",
+    "/app/test_reports/pytest/phase2_persistence.xml",
+    "/app/test_reports/pytest/prediction_engine_units_iter8.xml",
+    "/app/test_reports/pytest/prediction_v2_endpoint_iter8.xml",
+    "/app/test_reports/pytest/prediction_endpoint_iter8.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py /api/prediction persistence block correctly wraps all writes in a try/except so persistence failures never break the read path.",
+    "P2 resolution loop excludes the current prediction_id from the unresolved query so an in-flight prediction is not resolved against its own last_cycle_start (server.py:513).",
+    "P11 snapshot upsert is keyed on (user_id, month) with a unique index (db.py:89) — two same-month /prediction calls produce exactly one row (verified live and by test_one_snapshot_per_month_idempotent).",
+    "P14 benchmark_records is keyed on (user_id, actual_period_start) unique (db.py:90-91) — no duplicate walk-forward rows (verified by aggregate dupe check).",
+    "GET /api/prediction/history correctly serializes datetime fields (updated_at, generated_at, resolved_at, created_at) on rows/metrics/snapshots before returning.",
+    "Heavy backend test suites trip the 10/min register rate-limit when run back-to-back; conftest.register_user retries 429 for up to 90s — a 'sudo supervisorctl restart backend' between suites is the clean reset (already documented in the agent-to-agent note)."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "100% (218/218)", "frontend": "100%" },
+  "seed_data_creation": "test_phase2_persistence.py registers ONE TEST_phase2_* user with 8 cycles via the fixture; not cleaned up but isolated by uuid.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Run prediction suites with a 'sudo supervisorctl restart backend && sleep 6' between heavy files to avoid 429 from /auth/register (10/min, 30/hr). Demo user demo@cycle.app/DemoPass123! now has 8 cycles + 10 prediction_history rows + 1 monthlySnapshot (current month) + benchmark_records. Key testIDs: prediction-panel, prediction-accuracy-card, accuracy-mae, accuracy-success, accuracy-stability, accuracy-trail-chart. The v2 prediction response is fully deterministic except auditTrail.generated_at — strip that key when diffing two calls.",
+  "rca_of_issue": "N/A — Phase 2 P2/P11/P14 persistence work verified, all targeted features functioning as specified."
+}
